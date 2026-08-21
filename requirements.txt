@@ -1,0 +1,14 @@
+# Finance + AI learning projects — dependencies
+# Install everything with:  pip install -r requirements.txt
+
+yfinance>=0.2.40      # live market data from Yahoo Finance
+pandas>=2.0           # dataframes / tabular data
+numpy>=1.24           # math on arrays
+matplotlib>=3.7       # static charts (Project 2)
+scikit-learn>=1.3     # machine learning model (Project 3)
+vaderSentiment>=3.3   # NLP sentiment scoring (Project 4)
+openai>=1.30          # OpenRouter/DeepSeek client (Projects 5, 7, 8)
+requests>=2.31        # fetching the S&P 500 list
+lxml>=4.9             # parsing the Wikipedia table
+streamlit>=1.30       # the web dashboard (Project 8)
+plotly>=5.18          # interactive charts in the dashboard
