@@ -200,9 +200,9 @@ with tab4:
     key = st.text_input("OpenRouter API key", type="password",
                         value=os.environ.get("OPENROUTER_API_KEY", ""),
                         help="Kept only in this session; used to call the model.")
-    ai_model = st.text_input("Model", "deepseek/deepseek-chat", key="ai_model",
+    ai_model = st.text_input("Model", "openai/gpt-4o-mini", key="ai_model",
                              help="Any model id from openrouter.ai/models, "
-                                  "e.g. openai/gpt-4o-mini, anthropic/claude-3.5-sonnet.")
+                                  "e.g. anthropic/claude-3.5-sonnet, deepseek/deepseek-chat.")
     a_ticker = st.text_input("Ticker", "NVDA", key="ai").upper().strip()
     question = st.text_area("Your question",
                             "How is this stock doing and how risky is it right now?")
@@ -239,7 +239,7 @@ with tab4:
                           "the provided real data; never invent numbers. Explain terms "
                           "simply. Educational, not investment advice.")
                 resp = client.chat.completions.create(
-                    model=ai_model or "deepseek/deepseek-chat", temperature=0.4,
+                    model=ai_model or "openai/gpt-4o-mini", temperature=0.4,
                     messages=[{"role": "system", "content": system},
                               {"role": "user", "content": f"DATA: {facts}\n\nQUESTION: {question}"}])
                 st.markdown(resp.choices[0].message.content)
