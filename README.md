@@ -8,9 +8,9 @@ in an interactive web dashboard.
 > ⚠️ **Educational only. Not investment advice.** These tools are for learning,
 > not for making real money decisions.
 
-> 📚 **New to finance?** Start with [**LEARN_FINANCE.md**](LEARN_FINANCE.md) — a
+> **New to finance?** Start with [**LEARN_FINANCE.md**](LEARN_FINANCE.md), a
 > beginner's notes on every concept in this repo (returns, volatility,
-> diversification, Sharpe ratio, backtesting…), each tied to a real number the
+> diversification, Sharpe ratio, backtesting), each tied to a real number the
 > code produces.
 
 ---
