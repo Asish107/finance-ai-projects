@@ -161,6 +161,32 @@ Investigate before believing it.
 
 ---
 
+## 11. Modern Portfolio Theory and the Efficient Frontier
+
+Diversification lowers risk (concept 4). Modern Portfolio Theory (MPT) asks the
+next question: what is the single BEST mix? Every possible split of your money
+across N stocks gives one (risk, return) point. Plot thousands of them and the
+best ones form a curve called the **efficient frontier**: for each level of
+risk, the mix with the highest possible return. Any portfolio below the frontier
+is wasting risk.
+
+Two special points on it matter most:
+
+- **Max Sharpe portfolio:** the best reward per unit of risk.
+- **Minimum variance portfolio:** the lowest possible risk.
+
+The engine is the **covariance matrix**, which captures not just each stock's
+volatility but how every pair moves together. Markowitz's Nobel-winning insight
+was that risk is about relationships between assets, not just individual stocks,
+so you can mathematically engineer the optimal portfolio instead of guessing.
+
+> Optimizing 6 assets found a max-Sharpe mix of 24.7% return at 12% risk (Sharpe
+> 1.69), and it did it by loading up on the diversifiers (gold and Coca-Cola),
+> not the flashy tech stocks. The math rediscovered the free lunch and pushed it
+> to the optimum.
+
+---
+
 ## The whole thing in one sentence
 
 > Return is your reward, volatility is your risk, they come as a pair,
