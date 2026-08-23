@@ -1,9 +1,12 @@
 # 📈 Finance + AI — Learn by Building
 
-A hands-on journey through **finance and AI**, built as 8 progressively richer
+### ▶️ [**Try the live dashboard**](https://asish-finance-ai.streamlit.app/)
+
+A hands-on journey through **finance and AI**, built as 11 progressively richer
 projects that all use **real, live market data** from Yahoo Finance. Each project
 teaches one finance concept and one AI/data concept — and it all comes together
-in an interactive web dashboard.
+in an [interactive web dashboard](https://asish-finance-ai.streamlit.app/) you
+can try right in your browser.
 
 > ⚠️ **Educational only. Not investment advice.** These tools are for learning,
 > not for making real money decisions.
