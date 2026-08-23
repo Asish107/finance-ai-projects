@@ -29,6 +29,7 @@ in an interactive web dashboard.
 | 8 | [**Dashboard**](08_dashboard/) | all of the above | Streamlit web app |
 | 9 | [Backtester](09_backtester/) | strategy testing vs. benchmark | out-of-sample eval, no lookahead bias |
 | 10 | [Efficient Frontier](10_efficient_frontier/) | Modern Portfolio Theory, optimal weights | Monte Carlo, optimization |
+| 11 | [Monte Carlo](11_monte_carlo/) | range of future outcomes, chance of loss | simulation |
 
 ---
 

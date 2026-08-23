@@ -163,12 +163,22 @@ Investigate before believing it.
 
 ## 11. Modern Portfolio Theory and the Efficient Frontier
 
-Diversification lowers risk (concept 4). Modern Portfolio Theory (MPT) asks the
-next question: what is the single BEST mix? Every possible split of your money
+**In plain English:** you have money and a few stocks. The question is just "how
+much should I put in each one?" There are millions of possible splits. So the
+computer tries thousands of random splits, checks how much each one earns and how
+bumpy the ride is, and points to the single smartest split. That is the whole
+idea. The scary-looking "efficient frontier" chart is just a picture of all those
+attempts, with the best ones along one edge.
+
+The one takeaway: instead of guessing how to divide your money, the math finds
+the best division for you, and it usually leans on calm assets (like gold) that
+stay steady when everything else panics.
+
+**The slightly more technical version:** every possible split of your money
 across N stocks gives one (risk, return) point. Plot thousands of them and the
-best ones form a curve called the **efficient frontier**: for each level of
-risk, the mix with the highest possible return. Any portfolio below the frontier
-is wasting risk.
+best ones form a curve called the **efficient frontier**: for each level of risk,
+the mix with the highest possible return. Any portfolio below the frontier is
+wasting risk.
 
 Two special points on it matter most:
 
@@ -184,6 +194,31 @@ so you can mathematically engineer the optimal portfolio instead of guessing.
 > 1.69), and it did it by loading up on the diversifiers (gold and Coca-Cola),
 > not the flashy tech stocks. The math rediscovered the free lunch and pushed it
 > to the optimum.
+
+---
+
+## 12. Monte Carlo Simulation (in plain English)
+
+Nobody can predict what your money will be worth in 10 years, there is too much
+randomness. So instead of pretending to know, the computer rolls the dice
+thousands of times and plays out thousands of different "what if" futures for
+your money.
+
+Some futures are unlucky, some are lucky, most land in the middle. Line them all
+up and you see the RANGE of what could happen, not one fake magic number.
+
+> $10,000 in an S&P 500 fund for 10 years: unlucky futures ended near $17,000,
+> a middle future near $34,000, lucky futures near $68,000, with about a 1%
+> chance of actually losing money.
+
+**The one takeaway:** your money does not have one future, it has a range of
+possible futures. Seeing that whole range (from "meh" to "great") is far more
+honest than any single promised number. Real retirement calculators work exactly
+this way.
+
+Caveat worth knowing: this assumes the future behaves like the past and that
+really bad crashes are rare. In real life crashes happen a bit more often than
+the simple math expects, so treat the rosy end with humility.
 
 ---
 
