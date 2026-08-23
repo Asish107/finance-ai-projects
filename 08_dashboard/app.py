@@ -61,24 +61,31 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(
 # =============================  TAB 1: EXPLORER  =============================
 with tab1:
     st.subheader("Single-stock explorer")
-    ticker = st.text_input("Ticker", "AAPL", key="explorer").upper().strip()
+    ticker = st.text_input("Ticker (symbol, e.g. AAPL not Apple)", "AAPL",
+                           key="explorer").upper().strip()
     if ticker:
         prices = load_prices(ticker)
-        s = prices.iloc[:, 0].dropna()
-        ret = s.pct_change().dropna()
+        s = prices.iloc[:, 0].dropna() if not prices.empty else prices
 
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Price", f"${s.iloc[-1]:,.2f}")
-        c2.metric("1-Year Return", f"{(s.iloc[-1]/s.iloc[0]-1)*100:+.1f}%")
-        c3.metric("Annualized Volatility", f"{ret.std()*np.sqrt(TRADING_DAYS)*100:.1f}%")
-        c4.metric("Worst Day", f"{ret.min()*100:.1f}%")
+        if prices.empty or len(s) < 2:
+            st.warning(f"Couldn't find market data for '{ticker}'. "
+                       "Make sure you're using the stock's ticker symbol "
+                       "(for example AAPL for Apple, TSLA for Tesla, MSFT for Microsoft).")
+        else:
+            ret = s.pct_change().dropna()
 
-        fig = px.line(s, title=f"{ticker} — 1 year price")
-        fig.update_layout(showlegend=False, height=380)
-        st.plotly_chart(fig, use_container_width=True)
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Price", f"${s.iloc[-1]:,.2f}")
+            c2.metric("1-Year Return", f"{(s.iloc[-1]/s.iloc[0]-1)*100:+.1f}%")
+            c3.metric("Annualized Volatility", f"{ret.std()*np.sqrt(TRADING_DAYS)*100:.1f}%")
+            c4.metric("Worst Day", f"{ret.min()*100:.1f}%")
 
-        st.caption("Volatility = how much daily returns swing = the standard "
-                   "measure of risk. Higher return usually means higher volatility.")
+            fig = px.line(s, title=f"{ticker} — 1 year price")
+            fig.update_layout(showlegend=False, height=380)
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.caption("Volatility = how much daily returns swing = the standard "
+                       "measure of risk. Higher return usually means higher volatility.")
 
 
 # ============================  TAB 2: PORTFOLIO  ============================
@@ -90,6 +97,8 @@ with tab2:
     if len(tickers) >= 2:
         prices = load_prices(tickers, period="2y")
         prices = prices[[t for t in tickers if t in prices.columns]].dropna()
+
+    if len(tickers) >= 2 and prices.shape[1] >= 2 and len(prices) > 1:
         returns = prices.pct_change().dropna()
 
         indiv_vol = returns.std() * np.sqrt(TRADING_DAYS)
@@ -126,7 +135,8 @@ with tab2:
                    "the 'free lunch' of diversification. Green cells = stocks that "
                    "move differently, giving the biggest benefit.")
     else:
-        st.info("Enter at least 2 tickers.")
+        st.info("Enter at least 2 valid ticker symbols (e.g. AAPL MSFT KO). "
+                "Use symbols, not company names.")
 
 
 # ==========================  TAB 3: S&P 500 SCANNER  ========================
@@ -182,7 +192,11 @@ with tab4:
         else:
             with st.spinner("Gathering real data + asking DeepSeek..."):
                 tk = yf.Ticker(a_ticker)
-                s = tk.history(period="1y")["Close"]
+                s = tk.history(period="1y")["Close"].dropna()
+                if len(s) < 2:
+                    st.warning(f"Couldn't find data for '{a_ticker}'. Use a ticker "
+                               "symbol like AAPL, TSLA, or MSFT.")
+                    st.stop()
                 r = s.pct_change().dropna()
                 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
                 an = SentimentIntensityAnalyzer()
@@ -315,16 +329,20 @@ with tab6:
             px_ = load_prices(tks, period="3y")
             px_ = px_[[t for t in tks if t in px_.columns]].dropna()
             tks = list(px_.columns)
-            rets = px_.pct_change().dropna()
-            mean_a = rets.mean() * TRADING_DAYS
-            cov_a = rets.cov() * TRADING_DAYS
-            N = 20000
-            res = np.zeros((N, 3)); W = np.zeros((N, len(tks)))
-            for i in range(N):
-                w = np.random.random(len(tks)); w /= w.sum(); W[i] = w
-                r = w @ mean_a; v = np.sqrt(w @ cov_a @ w)
-                res[i] = [r, v, (r - RISK_FREE_RATE/100) / v]
-            st.session_state["frontier_data"] = (res, W, tks)
+            if len(tks) < 2 or len(px_) < 2:
+                st.warning("Need at least 2 valid ticker symbols (e.g. AAPL MSFT KO). "
+                           "Use symbols, not company names.")
+            else:
+                rets = px_.pct_change().dropna()
+                mean_a = rets.mean() * TRADING_DAYS
+                cov_a = rets.cov() * TRADING_DAYS
+                N = 20000
+                res = np.zeros((N, 3)); W = np.zeros((N, len(tks)))
+                for i in range(N):
+                    w = np.random.random(len(tks)); w /= w.sum(); W[i] = w
+                    r = w @ mean_a; v = np.sqrt(w @ cov_a @ w)
+                    res[i] = [r, v, (r - RISK_FREE_RATE/100) / v]
+                st.session_state["frontier_data"] = (res, W, tks)
 
     if "frontier_data" in st.session_state:
         res, W, tks = st.session_state["frontier_data"]
@@ -365,7 +383,12 @@ with tab7:
 
     if st.button("Simulate my future", type="primary"):
         with st.spinner("Rolling the dice 5,000 times..."):
-            s = load_prices(mc_ticker, period="5y").iloc[:, 0].dropna()
+            _px = load_prices(mc_ticker, period="5y")
+            s = _px.iloc[:, 0].dropna() if not _px.empty else _px
+            if _px.empty or len(s) < 2:
+                st.warning(f"Couldn't find data for '{mc_ticker}'. Use a ticker "
+                           "symbol like SPY, AAPL, or TSLA.")
+                st.stop()
             rets = s.pct_change().dropna()
             mu, sigma = rets.mean(), rets.std()
             days = mc_years * TRADING_DAYS
