@@ -1,0 +1,8 @@
+# Streamlit configuration for the deployed app.
+# Keeps the public app clean: no error tracebacks or developer menus for visitors.
+
+[client]
+# Hide Python error details from viewers (they see a generic message, not a traceback).
+showErrorDetails = "none"
+# Minimal toolbar: hides the developer/manage menu for people just viewing the app.
+toolbarMode = "minimal"
