@@ -52,9 +52,10 @@ def sp500_list():
 st.title("📈 Finance + AI Dashboard")
 st.caption("Live market data from Yahoo Finance. Educational only — not investment advice.")
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(
     ["🔍 Stock Explorer", "🧺 Portfolio", "📊 S&P 500 Scanner",
-     "🤖 AI Analyst", "🗞️ Weekly Recap"])
+     "🤖 AI Analyst", "🗞️ Weekly Recap",
+     "🎯 Best Mix", "🎲 Future Simulator"])
 
 
 # =============================  TAB 1: EXPLORER  =============================
@@ -298,3 +299,99 @@ with tab5:
                         messages=[{"role": "system", "content": system},
                                   {"role": "user", "content": f"Day-by-day S&P 500 data:\n{facts}\n\nWrite the weekly recap."}])
                     st.markdown(resp.choices[0].message.content)
+
+
+# ==================  TAB 6: BEST MIX (Efficient Frontier)  ==================
+with tab6:
+    st.subheader("🎯 Best Mix — how should I split my money?")
+    st.caption("Tries thousands of random ways to divide your money across these "
+               "stocks, and points to the smartest split (most reward for least risk).")
+    raw6 = st.text_input("Stocks to mix (space-separated)",
+                         "AAPL MSFT KO XOM GLD TLT", key="frontier")
+    tks = [t.upper() for t in raw6.split() if t.strip()]
+
+    if st.button("Find the best mix", type="primary") and len(tks) >= 2:
+        with st.spinner("Trying 20,000 random splits..."):
+            px_ = load_prices(tks, period="3y")
+            px_ = px_[[t for t in tks if t in px_.columns]].dropna()
+            tks = list(px_.columns)
+            rets = px_.pct_change().dropna()
+            mean_a = rets.mean() * TRADING_DAYS
+            cov_a = rets.cov() * TRADING_DAYS
+            N = 20000
+            res = np.zeros((N, 3)); W = np.zeros((N, len(tks)))
+            for i in range(N):
+                w = np.random.random(len(tks)); w /= w.sum(); W[i] = w
+                r = w @ mean_a; v = np.sqrt(w @ cov_a @ w)
+                res[i] = [r, v, (r - RISK_FREE_RATE/100) / v]
+            st.session_state["frontier_data"] = (res, W, tks)
+
+    if "frontier_data" in st.session_state:
+        res, W, tks = st.session_state["frontier_data"]
+        r, v, sh = res[:, 0]*100, res[:, 1]*100, res[:, 2]
+        best = sh.argmax(); safe = res[:, 1].argmin()
+
+        c1, c2 = st.columns(2)
+        c1.metric("🌟 Best mix return", f"{r[best]:.1f}%", f"risk {v[best]:.1f}%")
+        c2.metric("🛡️ Safest mix return", f"{r[safe]:.1f}%", f"risk {v[safe]:.1f}%")
+
+        fig = px.scatter(x=v, y=r, color=sh, color_continuous_scale="viridis",
+                         labels={"x": "Risk (volatility %)", "y": "Return %", "color": "Reward/risk"},
+                         title="Every dot = one possible mix. Top-left is best.")
+        fig.add_scatter(x=[v[best]], y=[r[best]], mode="markers",
+                        marker=dict(size=22, color="red", symbol="star"), name="Best mix")
+        fig.add_scatter(x=[v[safe]], y=[r[safe]], mode="markers",
+                        marker=dict(size=22, color="deepskyblue", symbol="star"), name="Safest mix")
+        fig.update_layout(height=430)
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.write("**🌟 The best mix puts your money here:**")
+        best_w = pd.DataFrame({"Stock": tks, "Put this %": (W[best]*100).round(1)}
+                              ).sort_values("Put this %", ascending=False)
+        st.dataframe(best_w, hide_index=True, use_container_width=True)
+        st.caption("Notice the math usually favors calm diversifiers (like gold/bonds) "
+                   "that steady the ride — not just the flashiest stocks.")
+
+
+# ==================  TAB 7: FUTURE SIMULATOR (Monte Carlo)  =================
+with tab7:
+    st.subheader("🎲 Future Simulator — where could my money end up?")
+    st.caption("Rolls the dice on thousands of possible futures for your investment, "
+               "so you see the whole RANGE of outcomes, not one fake number.")
+    c1, c2, c3 = st.columns(3)
+    mc_ticker = c1.text_input("Invest in", "SPY", key="mc").upper().strip()
+    mc_amount = c2.number_input("Amount ($)", 1000, 1_000_000, 10000, step=1000)
+    mc_years = c3.slider("Years", 1, 30, 10)
+
+    if st.button("Simulate my future", type="primary"):
+        with st.spinner("Rolling the dice 5,000 times..."):
+            s = load_prices(mc_ticker, period="5y").iloc[:, 0].dropna()
+            rets = s.pct_change().dropna()
+            mu, sigma = rets.mean(), rets.std()
+            days = mc_years * TRADING_DAYS
+            rng = np.random.default_rng(42)
+            paths = mc_amount * np.cumprod(1 + rng.normal(mu, sigma, (days, 5000)), axis=0)
+            endings = paths[-1]
+            p10, p50, p90 = np.percentile(endings, [10, 50, 90])
+
+            c1, c2, c3 = st.columns(3)
+            c1.metric("😟 Unlucky (bottom 10%)", f"${p10:,.0f}")
+            c2.metric("😐 Most likely (middle)", f"${p50:,.0f}")
+            c3.metric("😄 Lucky (top 10%)", f"${p90:,.0f}")
+            c1, c2 = st.columns(2)
+            c1.metric("Chance of LOSING money", f"{(endings < mc_amount).mean()*100:.1f}%")
+            c2.metric("Chance of DOUBLING+", f"{(endings > 2*mc_amount).mean()*100:.1f}%")
+
+            t_axis = np.arange(days) / TRADING_DAYS
+            fig = go.Figure()
+            for i in range(0, 300):   # show 300 sample futures
+                fig.add_scatter(x=t_axis, y=paths[:, i], mode="lines",
+                                line=dict(color="steelblue", width=0.5),
+                                opacity=0.08, showlegend=False, hoverinfo="skip")
+            fig.add_scatter(x=t_axis, y=np.median(paths, axis=1), mode="lines",
+                            line=dict(color="red", width=3), name="Median")
+            fig.update_layout(title=f"5,000 possible futures for ${mc_amount:,} in {mc_ticker}",
+                              xaxis_title="Years", yaxis_title="Value ($)", height=430)
+            st.plotly_chart(fig, use_container_width=True)
+            st.caption("The 'fan' widens over time — the further out, the more uncertain. "
+                       "That spread IS the risk, made visible.")
