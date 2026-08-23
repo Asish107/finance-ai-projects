@@ -26,7 +26,7 @@ can try right in your browser.
 | 2 | [Portfolio Dashboard](02_portfolio_dashboard/) | diversification, correlation | data viz |
 | 3 | [Price Predictor](03_price_predictor/) | efficient market hypothesis | ML: train/test split, baselines |
 | 4 | [News Sentiment](04_news_sentiment/) | how information moves prices | NLP sentiment scoring |
-| 5 | [AI Analyst](05_ai_analyst/) | reading financials | LLM (DeepSeek) grounded on real data |
+| 5 | [AI Analyst](05_ai_analyst/) | reading financials | LLM (via OpenRouter) grounded on real data |
 | 6 | [S&P 500 Scanner](06_sp500_scanner/) | stock screening, Sharpe ratio | batch data, ranking |
 | 7 | [Weekly Recap](07_weekly_recap/) | market breadth, daily moves | LLM-generated newsletter |
 | 8 | [**Dashboard**](08_dashboard/) | all of the above | Streamlit web app |
@@ -55,7 +55,9 @@ streamlit run 08_dashboard/app.py
 
 ## Using the AI features (Projects 5, 7, and the dashboard)
 
-The AI features call **DeepSeek** through [OpenRouter](https://openrouter.ai).
+The AI features use [OpenRouter](https://openrouter.ai), which gives access to
+hundreds of models (DeepSeek, GPT, Claude, Llama, and more). DeepSeek is the
+default, but the dashboard lets you type in any OpenRouter model id you prefer.
 Get a free API key, then set it as an environment variable:
 
 ```bash

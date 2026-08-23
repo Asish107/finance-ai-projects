@@ -194,10 +194,15 @@ with tab3:
 
 # ============================  TAB 4: AI ANALYST  ===========================
 with tab4:
-    st.subheader("AI analyst (DeepSeek via OpenRouter)")
+    st.subheader("AI analyst (bring your own OpenRouter key)")
+    st.caption("Uses OpenRouter, which gives access to hundreds of AI models "
+               "(DeepSeek, GPT, Claude, Llama, and more). Pick any model below.")
     key = st.text_input("OpenRouter API key", type="password",
                         value=os.environ.get("OPENROUTER_API_KEY", ""),
                         help="Kept only in this session; used to call the model.")
+    ai_model = st.text_input("Model", "deepseek/deepseek-chat", key="ai_model",
+                             help="Any model id from openrouter.ai/models, "
+                                  "e.g. openai/gpt-4o-mini, anthropic/claude-3.5-sonnet.")
     a_ticker = st.text_input("Ticker", "NVDA", key="ai").upper().strip()
     question = st.text_area("Your question",
                             "How is this stock doing and how risky is it right now?")
@@ -206,7 +211,7 @@ with tab4:
         if not key:
             st.error("Enter your OpenRouter API key above.")
         else:
-            with st.spinner("Gathering real data + asking DeepSeek..."):
+            with st.spinner("Gathering real data + asking the model..."):
                 tk = yf.Ticker(a_ticker)
                 s = tk.history(period="1y")["Close"].dropna()
                 if len(s) < 2:
@@ -234,7 +239,7 @@ with tab4:
                           "the provided real data; never invent numbers. Explain terms "
                           "simply. Educational, not investment advice.")
                 resp = client.chat.completions.create(
-                    model="deepseek/deepseek-chat", temperature=0.4,
+                    model=ai_model or "deepseek/deepseek-chat", temperature=0.4,
                     messages=[{"role": "system", "content": system},
                               {"role": "user", "content": f"DATA: {facts}\n\nQUESTION: {question}"}])
                 st.markdown(resp.choices[0].message.content)
@@ -312,11 +317,13 @@ with tab5:
         st.divider()
         key2 = st.text_input("OpenRouter API key (for the AI recap)", type="password",
                              value=os.environ.get("OPENROUTER_API_KEY", ""), key="recap_key")
+        recap_model = st.text_input("Model", "deepseek/deepseek-chat", key="recap_model",
+                                    help="Any model id from openrouter.ai/models.")
         if st.button("Write the AI recap"):
             if not key2:
                 st.error("Enter your OpenRouter API key.")
             else:
-                with st.spinner("DeepSeek is writing your weekly newsletter..."):
+                with st.spinner("The model is writing your weekly newsletter..."):
                     from openai import OpenAI
                     client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=key2)
                     system = ("You are a financial newsletter writer for a beginner. "
@@ -325,7 +332,7 @@ with tab5:
                               "if you guess WHY a sector moved, mark it clearly as a guess. "
                               "End with a 2-sentence big-picture takeaway. Not investment advice.")
                     resp = client.chat.completions.create(
-                        model="deepseek/deepseek-chat", temperature=0.5,
+                        model=recap_model or "deepseek/deepseek-chat", temperature=0.5,
                         messages=[{"role": "system", "content": system},
                                   {"role": "user", "content": f"Day-by-day S&P 500 data:\n{facts}\n\nWrite the weekly recap."}])
                     st.markdown(resp.choices[0].message.content)
