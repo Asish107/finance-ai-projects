@@ -15,6 +15,7 @@ Tabs:
 
 import io
 import os
+import time
 import numpy as np
 import pandas as pd
 import requests
@@ -32,8 +33,23 @@ st.set_page_config(page_title="Finance + AI Dashboard", layout="wide", page_icon
 # ---------- cached data helpers (so we don't re-download on every click) ----------
 @st.cache_data(ttl=1800)
 def load_prices(tickers, period="1y"):
-    data = yf.download(tickers, period=period, interval="1d",
-                       progress=False, auto_adjust=True)["Close"]
+    # Yahoo occasionally rate-limits shared cloud servers. Retry a few times with
+    # a short backoff so transient "Too Many Requests" errors self-heal instead of
+    # looking like a missing ticker to the user.
+    data = None
+    for attempt in range(3):
+        try:
+            data = yf.download(tickers, period=period, interval="1d",
+                               progress=False, auto_adjust=True)["Close"]
+            if not data.dropna(how="all").empty:
+                break
+        except Exception:
+            data = None
+        if attempt < 2:
+            time.sleep(1.5 * (attempt + 1))   # 1.5s, then 3s
+
+    if data is None:
+        return pd.DataFrame()
     if isinstance(data, pd.Series):
         data = data.to_frame(name=tickers if isinstance(tickers, str) else tickers[0])
     return data.dropna(how="all")
@@ -68,9 +84,9 @@ with tab1:
         s = prices.iloc[:, 0].dropna() if not prices.empty else prices
 
         if prices.empty or len(s) < 2:
-            st.warning(f"Couldn't find market data for '{ticker}'. "
-                       "Make sure you're using the stock's ticker symbol "
-                       "(for example AAPL for Apple, TSLA for Tesla, MSFT for Microsoft).")
+            st.warning(f"Couldn't load data for '{ticker}'. "
+                       "Either it's not a valid ticker symbol (use AAPL, not Apple), "
+                       "or the data service is briefly busy — try reloading the page.")
         else:
             ret = s.pct_change().dropna()
 
