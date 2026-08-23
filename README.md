@@ -22,6 +22,7 @@ in an interactive web dashboard.
 | 6 | [S&P 500 Scanner](06_sp500_scanner/) | stock screening, Sharpe ratio | batch data, ranking |
 | 7 | [Weekly Recap](07_weekly_recap/) | market breadth, daily moves | LLM-generated newsletter |
 | 8 | [**Dashboard**](08_dashboard/) | all of the above | Streamlit web app |
+| 9 | [Backtester](09_backtester/) | strategy testing vs. benchmark | out-of-sample eval, no lookahead bias |
 
 ---
 
@@ -35,7 +36,10 @@ pip install -r requirements.txt
 python3 01_stock_explorer/explore.py AAPL
 python3 06_sp500_scanner/scan.py
 
-# 3. Or launch the full interactive dashboard
+# 3. Backtest a strategy against the market
+python3 09_backtester/backtest.py
+
+# 4. Or launch the full interactive dashboard
 streamlit run 08_dashboard/app.py
 ```
 
