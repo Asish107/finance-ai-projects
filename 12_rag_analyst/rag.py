@@ -86,18 +86,27 @@ def chunk_text(text: str, words_per_chunk: int = 220):
     return chunks
 
 
+# If even the BEST-matching chunk scores below this, the document probably
+# doesn't cover the question at all. We then refuse instead of feeding the AI
+# irrelevant junk (which wastes money and risks a hallucinated answer).
+RELEVANCE_THRESHOLD = 0.05
+
+
 def retrieve(question: str, chunks, top_k: int = 5):
     """Find the chunks most relevant to the question (TF-IDF keyword matching).
 
     This is the 'R' in RAG. TF-IDF scores how well each chunk's words match the
     question. Real production systems use 'embeddings' (semantic search) here,
     which also catch synonyms, but the idea is identical: rank, then take the top few.
+
+    Returns the top chunks AND the best relevance score, so the caller can decide
+    whether the document actually contains anything relevant.
     """
     vec = TfidfVectorizer(stop_words="english")
     matrix = vec.fit_transform(chunks + [question])
     scores = cosine_similarity(matrix[-1], matrix[:-1])[0]
     best = scores.argsort()[::-1][:top_k]
-    return [chunks[i] for i in best]
+    return [chunks[i] for i in best], float(scores[best[0]])
 
 
 def run(ticker: str, question: str, use_ai: bool = True):
@@ -107,7 +116,24 @@ def run(ticker: str, question: str, use_ai: bool = True):
     print(f"Report loaded: ~{len(text.split()):,} words, split into {len(chunks)} chunks.\n")
 
     print(f"Finding the paragraphs most relevant to: \"{question}\"\n")
-    top_chunks = retrieve(question, chunks)
+    top_chunks, best_score = retrieve(question, chunks)
+
+    # Relevance gate: if nothing in the document matches well, refuse honestly
+    # instead of feeding the AI junk and risking a made-up answer.
+    if best_score < RELEVANCE_THRESHOLD:
+        print("=" * 66)
+        print(f"  This 10-K doesn't appear to cover that (best match score "
+              f"{best_score:.3f} < {RELEVANCE_THRESHOLD}).")
+        print("=" * 66)
+        print(
+            f"\n  \"{ticker}'s annual report doesn't contain information to answer\n"
+            "   that question.\"\n\n"
+            "  This is RAG doing its job: rather than guess from general memory,\n"
+            "  a grounded system admits when the source document has no answer.\n"
+            "  (Live info like today's stock price isn't in a yearly 10-K — use\n"
+            "   the Stock Explorer for that.)\n"
+        )
+        return
 
     print("=" * 66)
     print("  TOP RETRIEVED PASSAGES (what the AI will read)")
