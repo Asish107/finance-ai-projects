@@ -24,3 +24,7 @@ env/
 
 # ---- Streamlit ----
 .streamlit/secrets.toml
+
+# Downloaded SEC filings (re-fetched on demand, no need to commit)
+*_10-K_raw.html
+*_10-K_text.txt
