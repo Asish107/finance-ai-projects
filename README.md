@@ -2,7 +2,7 @@
 
 ### ▶️ [**Try the live dashboard**](https://asish-finance-ai.streamlit.app/)
 
-A hands-on journey through **finance and AI**, built as 11 progressively richer
+A hands-on journey through **finance and AI**, built as 12 progressively richer
 projects that all use **real, live market data** from Yahoo Finance. Each project
 teaches one finance concept and one AI/data concept — and it all comes together
 in an [interactive web dashboard](https://asish-finance-ai.streamlit.app/) you
@@ -33,6 +33,7 @@ can try right in your browser.
 | 9 | [Backtester](09_backtester/) | strategy testing vs. benchmark | out-of-sample eval, no lookahead bias |
 | 10 | [Efficient Frontier](10_efficient_frontier/) | Modern Portfolio Theory, optimal weights | Monte Carlo, optimization |
 | 11 | [Monte Carlo](11_monte_carlo/) | range of future outcomes, chance of loss | simulation |
+| 12 | [RAG Analyst](12_rag_analyst/) | reading a real 10-K annual report | RAG (retrieval + LLM) |
 
 ---
 
